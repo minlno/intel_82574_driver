@@ -5,6 +5,12 @@
 
 static int nic1g_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
+	int err;
+
+	err = pci_enable_device_mem(pdev);
+	if (err)
+		return err;
+
 	printk("nic1g_prove called\n");
 
 	return 0;
@@ -14,7 +20,7 @@ static void nic1g_remove(struct pci_dev *pdev)
 {
 	printk("nic1g_remove called\n");
 
-	return 0;
+	pci_disable_device(pdev);
 }
 
 static const struct pci_device_id nic1g_pci_tbl[] = {
