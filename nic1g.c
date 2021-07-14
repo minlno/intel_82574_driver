@@ -2,14 +2,25 @@
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/pci.h>
+#include <linux/types.h>
+#include <linux/pci_regs.h>
 
 static int nic1g_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
 	int err;
+	u16 vid, did;
 
 	err = pci_enable_device_mem(pdev);
 	if (err)
 		return err;
+
+	pci_set_master(pdev);
+
+	pci_read_config_word(pdev, PCI_VENDOR_ID, &vid);
+	pci_read_config_word(pdev, PCI_DEVICE_ID, &did);
+
+	printk("vendor id: %x, device id: %x\n", vid, did);
+	
 
 	printk("nic1g_prove called\n");
 
