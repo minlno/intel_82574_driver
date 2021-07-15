@@ -7,7 +7,9 @@
 
 static int nic1g_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
-	int err;
+	printk("nic1g_prove called\n");
+	
+	int bars, err;
 	u16 vid, did;
 
 	err = pci_enable_device_mem(pdev);
@@ -21,8 +23,9 @@ static int nic1g_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	printk("vendor id: %x, device id: %x\n", vid, did);
 	
+	bars = pci_select_bars(pdev, IORESOURCE_MEM);
 
-	printk("nic1g_prove called\n");
+	printk("pci num resources: %d, bars mask: %x\n", PCI_NUM_RESOURCES, bars);
 
 	return 0;
 }
@@ -49,7 +52,7 @@ static struct pci_driver nic1g_pci_driver = {
 
 static int __init nic1g_init_module(void)
 {
-	pr_info("mhkim nic driver\n");
+	pr_info("mhkim: nic driver\n");
 
 	return pci_register_driver(&nic1g_pci_driver);
 }
