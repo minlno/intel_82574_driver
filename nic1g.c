@@ -5,10 +5,13 @@
 #include <linux/types.h>
 #include <linux/pci_regs.h>
 
+void __iomem *hw_addr;
+
 static int nic1g_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
 	printk("nic1g_prove called\n");
-	
+
+	resource_size_t mmio_start, mmio_len;
 	int bars, err;
 	u16 vid, did;
 
@@ -24,16 +27,35 @@ static int nic1g_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	printk("vendor id: %x, device id: %x\n", vid, did);
 	
 	bars = pci_select_bars(pdev, IORESOURCE_MEM);
+	err = pci_request_selected_regions_exclusive(pdev, bars, "nic1g");
+	if (err)
+		goto err_pci_reg;
 
-	printk("pci num resources: %d, bars mask: %x\n", PCI_NUM_RESOURCES, bars);
+	mmio_start = pci_resource_start(pdev, 0);
+	mmio_len = pci_resource_len(pdev, 0);
+
+	err = -EIO;
+	hw_addr = ioremap(mmio_start, mmio_len);
+	if (!hw_addr)
+		goto err_ioremap;
+
+	printk("hw_addr: %p\n", hw_addr);
 
 	return 0;
+
+err_ioremap:
+err_pci_reg:
+	pci_release_mem_regions(pdev);
+	pci_disable_device(pdev);
+	return err;
 }
 
 static void nic1g_remove(struct pci_dev *pdev)
 {
 	printk("nic1g_remove called\n");
 
+	iounmap(hw_addr);
+	pci_release_mem_regions(pdev);
 	pci_disable_device(pdev);
 }
 
